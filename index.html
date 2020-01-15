@@ -1,0 +1,141 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="user-scalable=no" />
+		<title>手机OVPN密码生成器</title>
+
+		<style type="text/css"> 
+		<!-- 
+		/*手机使用好用点*/ 
+		input {width:100%;height:10%; }
+		* {font-size:40px} 
+		.button {
+	display: inline-block;
+	position: relative;
+	margin: 10px;
+	padding: 0 20px;
+	text-align: center;
+	text-decoration: none;
+	
+
+	text-shadow: 1px 1px 1px rgba(255,255,255, .22);
+
+	-webkit-border-radius: 30px;
+	-moz-border-radius: 30px;
+	border-radius: 30px;
+
+	-webkit-box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);
+	-moz-box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);
+	box-shadow: 1px 1px 1px rgba(0,0,0, .29), inset 1px 1px 1px rgba(255,255,255, .44);
+
+	-webkit-transition: all 0.15s ease;
+	-moz-transition: all 0.15s ease;
+	-o-transition: all 0.15s ease;
+	-ms-transition: all 0.15s ease;
+	transition: all 0.15s ease;
+}
+
+.green {
+	color: #3e5706;
+
+	background: #a5cd4e; /* Old browsers */
+	background: -moz-linear-gradient(top,  #a5cd4e 0%, #6b8f1a 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#a5cd4e), color-stop(100%,#6b8f1a)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* IE10+ */
+	background: linear-gradient(top,  #a5cd4e 0%,#6b8f1a 100%); /* W3C */
+}
+
+		-->  
+		</style> 
+	</head>
+	<body>
+		opd密码
+		<input type="password" id="opdpwd"/><br/>
+		动态码(企业微信复制的可以直接粘贴,自动去空格)
+		<input type="text" id="kgdnc" pattern="[0-9]*" /><br/>
+		<input type="button" id="calc" value="计算ovpn密码并复制到剪贴板" onclick="javascript:getTheOvpnPassword()" class="button green" /><br/>
+		上次成功时间
+		<input type="text" id="result"/ value="readonly" readonly><br/>
+		如果失效可以尝试最新版本的ovpn配置文件
+		<input type="button" id="download" value="点击获取最新ovpn配置文件" onclick="javascript:downloadNewConfig()" class="button green" /><br/>
+		支持 4.0.8<br>
+		加密过程不经过服务端，请放心食用<br>
+		密码保存使用localStorage，不会上传到服务器<br>
+		使用方法<br>
+		1.打开企业微信动态码点复制(剩余时间要足够长)<br>
+		2.页面上输入opd密码和动态码<br>
+		3.点击生成<br>
+		4.粘贴到手机ovpn的密码框 账号不需要带rd<br>
+		5.点击连接<br>
+		6.pc 端连接软件 http://openvpn.ustc.edu.cn/openvpn-install-2.3.10-I601-x86_64.exe 配置文件放安装路径的conf目录中</br> 
+	</body>
+
+	<script>
+			//估计是为了方便换key
+			var downloadLink = "https://qywx.kugou.com/vpn/config/client.ovpn"
+
+			//客户端有动态下载更新功能，整个工具可能失效
+			var appVersion = "4.0.8"; //应用当前的版本
+			var salt = "hlkerlerer?wew9s82!";
+			var platform = "win32";
+			var type = 1; //authType
+
+			function downloadNewConfig(){
+				window.open(downloadLink);
+			}
+
+			function encryptPassword (data, type) {
+				//由于opd密码肯定不是明文存储，大几率他们也不能读出来，所以应该无法使用md5之类的哈哈哈！
+				data = data + "-" + appVersion + "-" + platform + '-' + salt;
+						+ '-' + type;
+				data = data.split("")
+						.reverse()
+						.join("");
+				return data;
+			}
+
+			function getIdVal(id){
+				return document.getElementById(id).value;
+			}
+
+			function setIdVal(id,val){
+				return document.getElementById(id).value = val;
+			}
+
+			
+function copy2clipboard(message) {
+        var input = document.createElement("input");
+            input.value = message;
+            document.body.appendChild(input);
+            input.select();
+            input.setSelectionRange(0, input.value.length), document.execCommand('Copy');
+            document.body.removeChild(input);
+}
+
+
+			function getTheOvpnPassword(){
+				var opdpwd = getIdVal("opdpwd");
+				var kgdnc = getIdVal("kgdnc");
+
+				kgdnc= kgdnc.replace(/ /g, '');
+
+				var realpass = encryptPassword(opdpwd+kgdnc,type);
+
+				var msg = "success@"+new Date();
+				setIdVal("result",msg);
+
+				copy2clipboard(realpass);
+
+				localStorage.setItem("pwd",opdpwd);
+				localStorage.setItem("msg",msg)
+
+				location.reload();
+			}
+
+			setIdVal("opdpwd",localStorage.getItem("pwd"));
+			setIdVal("result",localStorage.getItem("msg"));
+		</script>
+</html>
+
